@@ -1,43 +1,6 @@
 <div>
 
-# **jsontoexcel wit aws lambda**
-
-<table class="properties">
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr class="property-row property-row-checkbox">
-<th><span class="icon property-icon"></span>
-<div data-testid="/icons/checkmark-square_gray.svg"
-style="width:14px;height:14px;flex-shrink:0;transform:scale(1.2);mask:url(/icons/checkmark-square_gray.svg?mode=light) no-repeat center;-webkit-mask:url(/icons/checkmark-square_gray.svg?mode=light) no-repeat center;background-color:rgba(71, 70, 68, 0.6);fill:rgba(71, 70, 68, 0.6)">
-&#10;</div>
-Estado</th>
-<td><div class="checkbox checkbox-off">
-&#10;</div></td>
-</tr>
-<tr class="property-row property-row-status">
-<th><span class="icon property-icon"></span>
-<div data-testid="/icons/burst_gray.svg"
-style="width:14px;height:14px;flex-shrink:0;transform:scale(1.2);mask:url(/icons/burst_gray.svg?mode=light) no-repeat center;-webkit-mask:url(/icons/burst_gray.svg?mode=light) no-repeat center;background-color:rgba(71, 70, 68, 0.6);fill:rgba(71, 70, 68, 0.6)">
-&#10;</div>
-Status</th>
-<td><span class="status-value"></span>
-<div class="status-dot">
-&#10;</div>
-Not started</td>
-</tr>
-<tr class="property-row property-row-multi_select">
-<th><span class="icon property-icon"></span>
-<div data-testid="/icons/list_gray.svg"
-style="width:14px;height:14px;flex-shrink:0;transform:scale(1.2);mask:url(/icons/list_gray.svg?mode=light) no-repeat center;-webkit-mask:url(/icons/list_gray.svg?mode=light) no-repeat center;background-color:rgba(71, 70, 68, 0.6);fill:rgba(71, 70, 68, 0.6)">
-&#10;</div>
-Tags</th>
-<td></td>
-</tr>
-</tbody>
-</table>
+# **jsontoexcel with aws lambda**
 
 </div>
 
