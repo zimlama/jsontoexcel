@@ -1,47 +1,40 @@
 <div>
 
-# **jsontoexcel with aws lambda**
+# ConvertingJSONtoExcel
 
 </div>
 
 <div class="page-body">
 
-# **json to excel**
+# 📘 Practical Guide: Converting JSON to Excel with AWS Lambda (Python)
 
-### Create repository
-
-``` code
-git clone https://github.com/zimlama/jsontoexcel.git
-cd jsontoexcel
-touch README.md
-echo "# jsontoexcel" >> README.md
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git push -u origin main
-```
+This guide explains how to create an AWS Lambda function in Python that
+converts a JSON table into an Excel (`.xlsx`) file and saves it to an
+Amazon S3 bucket. It also covers how to package dependencies
+using **Lambda Layers** with Docker, and how to configure permissions
+and test the function.
 
 ------------------------------------------------------------------------
 
-# How to Create a Python Lambda Function with Libraries
+## ✅ Requirements
 
-Here’s an example of an AWS Lambda function in Python that takes a table
-(for example, sent as JSON from an event) and converts it into an Excel
-(.xlsx) file, storing it in an Amazon S3 bucket.
-
-✅ **Requirements**:
-
-- Python 3.8 or higher
+- **Python:** Version 3.8 or higher
 
 <!-- -->
 
-- Libraries: pandas, openpyxl, boto3
+- **Libraries:** `pandas`, `openpyxl`, `boto3`
 
 <!-- -->
 
-- Permissions: The Lambda must have permissions to write to S3
+- **Permissions:** The Lambda execution role must have permissions to
+  write to S3 (e.g., `s3:PutObject`)
 
-📁 **Expected event structure**:
+------------------------------------------------------------------------
+
+## 📂 Expected Event Structure
+
+Your Lambda function will expect an event payload in the following
+format:
 
 ``` code
 {
@@ -54,7 +47,19 @@ Here’s an example of an AWS Lambda function in Python that takes a table
 }
 ```
 
-🐍 **Lambda Code**
+- **bucket** → Name of the S3 bucket
+
+<!-- -->
+
+- **key** → Name of the output Excel file
+
+<!-- -->
+
+- **table** → JSON array of objects to be converted into Excel
+
+------------------------------------------------------------------------
+
+## 🐍 Lambda Function Code
 
 ``` code
 import json
@@ -65,27 +70,28 @@ from io import BytesIO
 s3 = boto3.client('s3')
 
 def lambda_handler(event, context):
-    # Get data from event
+    # Extract input parameters
     table_data = event.get("table")
     bucket = event.get("bucket")
     key = event.get("key", "output.xlsx")
 
+    # Validate input
     if not table_data or not bucket:
         return {
             "statusCode": 400,
             "body": json.dumps("Missing parameters: 'table' or 'bucket'")
         }
 
-    # Convert to DataFrame
+    # Convert JSON to Pandas DataFrame
     df = pd.DataFrame(table_data)
 
-    # Save to Excel in memory
+    # Write DataFrame to Excel in memory
     with BytesIO() as output:
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
             df.to_excel(writer, index=False)
         output.seek(0)
 
-        # Upload to S3
+        # Upload Excel file to S3
         s3.put_object(Bucket=bucket, Key=key, Body=output.getvalue())
 
     return {
@@ -94,346 +100,430 @@ def lambda_handler(event, context):
     }
 ```
 
-🛠 **How to Deploy**:
+------------------------------------------------------------------------
 
-- Upload your dependencies (pandas, openpyxl) as a layer or inside the
-  ZIP package.
+## ⚙️ Deployment Options
 
-<!-- -->
+### 0. Create repository
 
-- Assign the proper permissions to the Lambda role
-  (e.g., `s3:PutObject`).
+``` code
+git clone https://github.com/zimlama/jsontoexcel.git
+cd jsontoexcel
+touch README.md
+echo "# jsontoexcel" >> README.md
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git push -u origin main
+```
 
-<!-- -->
-
-- Test the function with an event like the one shown above.
-
-### Create bucket:
+### 0.1 Create bucket
 
 Select `Create bucket`
 
-<figure id="25a91892-6feb-8038-ab3c-c7b1a1bf4281" class="image">
+<figure id="25a91892-6feb-80ab-b4fc-ce01f17c79a9" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_8.42.52_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_8.42.52_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_8.42.52_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_8.42.52_AM.png"
 style="width:2142px" /></a>
 </figure>
 
 Create `Bucket name`
 
-<figure id="25a91892-6feb-805c-b656-d8b34b1beb2d" class="image">
+<figure id="25a91892-6feb-80ca-bbfe-eb095f84d37f" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_8.44.53_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_8.44.53_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_8.44.53_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_8.44.53_AM.png"
 style="width:2150px" /></a>
 </figure>
 
 Select `Create bucket`
 
-<figure id="25a91892-6feb-8016-bcfa-ef4c6d93ccf1" class="image">
+<figure id="25a91892-6feb-808b-aab2-f8da376dc15e" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_8.45.53_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_8.45.53_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_8.45.53_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_8.45.53_AM.png"
 style="width:2560px" /></a>
 </figure>
 
 Bucket created
 
-<figure id="25a91892-6feb-8045-9e77-c9935176d857" class="image">
+<figure id="25a91892-6feb-807b-9d51-fc30eddc05cd" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_8.47.46_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_8.47.46_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_8.47.46_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_8.47.46_AM.png"
 style="width:2134px" /></a>
 </figure>
 
-------------------------------------------------------------------------
+### 1. Package Dependencies with Docker (Recommended)
 
-## ✅ Option 1: Using Docker to Create an AWS Lambda Layer
+Because AWS Lambda has limited built-in libraries, you need to
+include **pandas** and **openpyxl**. Instead of uploading them every
+time, you can build a **Lambda Layer** with Docker.
 
-With Docker you can create an AWS Lambda Layer that contains the pandas
-and openpyxl libraries, so you can reuse it in multiple Lambda functions
-without repackaging everything each time.
-
-### Why use Layers?
-
-- Avoid uploading pandas, openpyxl every time you change your code.
-
-<!-- -->
-
-- Keep the Lambda package lighter.
-
-<!-- -->
-
-- Share the layer across multiple functions.
-
-### Create Lambda:
-
-Select `Create a function`
-
-<figure id="25a91892-6feb-8079-bcf5-c7f88c4caea1" class="image">
-<a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_8.53.29_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_8.53.29_AM.png"
-style="width:2154px" /></a>
-</figure>
-
-Create `Function Name` and select language `Runtime`
-
-<figure id="25a91892-6feb-80fe-aad1-ce636b8b1b98" class="image">
-<a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_8.55.06_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_8.55.06_AM.png"
-style="width:2138px" /></a>
-</figure>
-
-Select `Architecture` and seleect `Create function`
-
-<figure id="25a91892-6feb-8010-8bac-d9060175543f" class="image">
-<a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.17.22_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.17.22_AM.png"
-style="width:2160px" /></a>
-</figure>
-
-<figure id="25a91892-6feb-80f5-b80a-f4f31cb547ee" class="image">
-<a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.16.00_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.16.00_AM.png"
-style="width:2560px" /></a>
-</figure>
-
-------------------------------------------------------------------------
-
-🐳 **Steps to Create a Layer Using Docker (Python 3.8)**
-
-📁 **1. Create folder structure**
+### Step 1: Create the folder structure
 
 ``` code
 mkdir -p lambda_layer/python
 cd lambda_layer/python
 ```
 
-AWS expects dependencies inside a subdirectory named `python`.
+AWS requires dependencies to be stored in a subdirectory
+called `python`.
 
-🐳 **2. Install pandas and openpyxl using Docker for Python 3.8**
-
-From the `lambda_layer` directory, run:
+### Step 2: Install dependencies inside Docker (Python 3.8)
 
 ``` code
-docker run -v "$PWD/python":/var/task lambci/lambda:build-python3.8 pip install pandas openpyxl -t /var/task
+docker run -v "$PWD":/var/task lambci/lambda:build-python3.8 \
+    pip install pandas openpyxl -t /var/task/python
 ```
 
-<figure id="25a91892-6feb-809d-b738-f62cf17360cc" class="image">
+<figure id="25a91892-6feb-801c-b2cf-ea3e7dc65084" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.24.19_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.24.19_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.24.19_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.24.19_AM.png"
 style="width:2058px" /></a>
 </figure>
 
-This installs the libraries inside `lambda_layer/python`, 100%
-compatible with AWS Lambda Python 3.8.
+This ensures libraries are compiled for the same environment as AWS
+Lambda.
 
-📦 **3. Create the ZIP for the layer**
+### Step 3: Create a ZIP file for the layer
 
 ``` code
+cd ..
 zip -r lambda_layer_pandas_openpyxl.zip python
 ```
 
-<figure id="25a91892-6feb-8096-a106-cb37fda3a250" class="image">
+<figure id="25a91892-6feb-8083-9c8a-e3f859bf3c89" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.30.23_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.30.23_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.30.23_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.30.23_AM.png"
 style="width:709.9739990234375px" /></a>
 </figure>
 
-☁️ **4. Upload the ZIP as a Lambda Layer**
+### Step 4: Upload the ZIP as a Lambda Layer
 
-- Go to AWS Lambda → **`Layers`**. select `Create a Layer`
-  <figure id="25a91892-6feb-80d4-b8c6-e7313614cdfd" class="image">
-  <a
-  href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.40.08_AM.png"><img
-  src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.40.08_AM.png"
-  style="width:2170px" /></a>
-  </figure>
+1.  Go to **AWS Lambda → Layers**
 
 <!-- -->
 
-- Click **`Create layer`**.
+2.  Click **Create Layer**
+    - Go to AWS Lambda → **`Layers`**. select `Create a Layer`
+      <figure id="25a91892-6feb-80fc-9df1-e8237f4fcaad" class="image">
+      <a
+      href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.40.08_AM.png"><img
+      src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.40.08_AM.png"
+      style="width:2170px" /></a>
+      </figure>
+
+    <!-- -->
+
+    - Click **`Create layer`**.
+
+    <!-- -->
+
+    - Assign a name, select Python 3.8, and
+      upload `lambda_layer_pandas_openpyxl.zip`.
+      <figure id="25a91892-6feb-8016-bb35-c627fa65bec9" class="image">
+      <a
+      href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.42.05_AM.png"><img
+      src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.42.05_AM.png"
+      style="width:2160px" /></a>
+      </figure>
+
+    <!-- -->
+
+    - Select `Compatible architectures` and `Compatible runtimes`
+      <figure id="25a91892-6feb-80b3-9eb0-f6c150ddb97b" class="image">
+      <a
+      href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.43.32_AM.png"><img
+      src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.43.32_AM.png"
+      style="width:2160px" /></a>
+      </figure>
+
+    <!-- -->
+
+    - `Create` the layer.
+      <figure id="25a91892-6feb-8064-a04c-fb0163681910" class="image">
+      <a
+      href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.48.00_AM.png"><img
+      src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.48.00_AM.png"
+      style="width:2160px" /></a>
+      </figure>
 
 <!-- -->
 
-- Assign a name, select Python 3.8, and
-  upload `lambda_layer_pandas_openpyxl.zip`.
-  <figure id="25a91892-6feb-80c5-820f-f3712b7cbf7f" class="image">
-  <a
-  href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.42.05_AM.png"><img
-  src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.42.05_AM.png"
-  style="width:2160px" /></a>
-  </figure>
+3.  Provide a name, select **Python 3.8**, and upload the ZIP file
 
 <!-- -->
 
-- Select `Compatible architectures` and `Compatible runtimes`
-  <figure id="25a91892-6feb-805f-a5c5-c4401e8032c5" class="image">
-  <a
-  href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.43.32_AM.png"><img
-  src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.43.32_AM.png"
-  style="width:2160px" /></a>
-  </figure>
+4.  Assign compatible architectures/runtimes
 
 <!-- -->
 
-- `Create` the layer.
-  <figure id="25a91892-6feb-80f8-a16b-d9af1d258a83" class="image">
-  <a
-  href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.48.00_AM.png"><img
-  src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.48.00_AM.png"
-  style="width:2160px" /></a>
-  </figure>
+5.  Create the layer
 
-🧩 **5. Add the Layer to your Lambda function**
+### Step 5: Attach the Layer to your Function
 
-- Go to your Lambda function.
-  <figure id="25a91892-6feb-80e8-98b4-dc91991eb171" class="image">
-  <a
-  href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.49.58_AM.png"><img
-  src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.49.58_AM.png"
-  style="width:2162px" /></a>
-  </figure>
+1.  Open your Lambda function
+    - Go to your Lambda function.
+      <figure id="25a91892-6feb-8027-8e01-df88897ba66f" class="image">
+      <a
+      href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.49.58_AM.png"><img
+      src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.49.58_AM.png"
+      style="width:2162px" /></a>
+      </figure>
+
+    <!-- -->
+
+    - Under **Layers**, click **`Add a layer`**.
+
+    <!-- -->
+
+    - Select the layer you just created. **`Custom layers`** **and**
+      **`Version`**
+      <figure id="25a91892-6feb-807c-ac3c-dfcb874c8d22" class="image">
+      <a
+      href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.51.42_AM.png"><img
+      src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.51.42_AM.png"
+      style="width:2158px" /></a>
+      </figure>
+
+    <!-- -->
+
+    - Save with `Add`.
+      <figure id="25a91892-6feb-80e4-8930-c8894bda47a1" class="image">
+      <a
+      href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.54.00_AM.png"><img
+      src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.54.00_AM.png"
+      style="width:2224px" /></a>
+      </figure>
 
 <!-- -->
 
-- Under **Layers**, click **`Add a layer`**.
+2.  Under **Layers**, click **Add a layer**
 
 <!-- -->
 
-- Select the layer you just created. **`Custom layers`** **and**
-  **`Version`**
-  <figure id="25a91892-6feb-801b-b12b-f1137731264f" class="image">
-  <a
-  href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.51.42_AM.png"><img
-  src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.51.42_AM.png"
-  style="width:2158px" /></a>
-  </figure>
+3.  Choose your custom layer
 
 <!-- -->
 
-- Save with `Add`.
-  <figure id="25a91892-6feb-80e0-a9d8-d9b223090e87" class="image">
-  <a
-  href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.54.00_AM.png"><img
-  src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.54.00_AM.png"
-  style="width:2224px" /></a>
-  </figure>
-
-📜 **Then in your Lambda code** you can directly paste de code en
-lambda_function.py use:
-
-<figure id="25a91892-6feb-80e0-b521-c2541ba212e3" class="image">
-<a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.59.39_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_9.59.39_AM.png"
-style="width:2224px" /></a>
-</figure>
-
-``` code
-import json
-import boto3
-import pandas as pd
-from io import BytesIO
-
-s3 = boto3.client('s3')
-
-def lambda_handler(event, context):
-    # Get data from event
-    table_data = event.get("table")
-    bucket = event.get("bucket")
-    key = event.get("key", "output.xlsx")
-
-    if not table_data or not bucket:
-        return {
-            "statusCode": 400,
-            "body": json.dumps("Missing parameters: 'table' or 'bucket'")
-        }
-
-    # Convert to DataFrame
-    df = pd.DataFrame(table_data)
-
-    # Save to Excel in memory
-    with BytesIO() as output:
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False)
-        output.seek(0)
-
-        # Upload to S3
-        s3.put_object(Bucket=bucket, Key=key, Body=output.getvalue())
-
-    return {
-        "statusCode": 200,
-        "body": json.dumps(f"File saved at s3://{bucket}/{key}")
-    }
-```
-
-With the code paste `Deploy`
-
-<figure id="25a91892-6feb-80b6-904e-e1cdabf9fe27" class="image">
-<a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.02.01_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.02.01_AM.png"
-style="width:2074px" /></a>
-</figure>
+4.  Save
 
 ------------------------------------------------------------------------
 
-👉 To add the permission in S3 bucket select `Configuration` and
-`Permission` , in `Role name` click in `jsontoexcel-role-odqxkhah`
+### 2. Create the Lambda Function
 
-<figure id="25a91892-6feb-80c1-86e0-f4cd0f3a2e0d" class="image">
-<a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.06.08_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.06.08_AM.png"
-style="width:2218px" /></a>
-</figure>
+1.  Navigate to **AWS Lambda → Create Function**
 
-In the new link in `Permission` select `Add permissions` with de option
-`Attach policies`
+    Select `Create a function`
 
-<figure id="25a91892-6feb-80f9-82e5-ecd3c7b1c1c2" class="image">
-<a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.10.30_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.10.30_AM.png"
-style="width:2560px" /></a>
-</figure>
+    <figure id="25a91892-6feb-80c9-af2b-f619a5dde0b0" class="image">
+    <a
+    href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_8.53.29_AM.png"><img
+    src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_8.53.29_AM.png"
+    style="width:2154px" /></a>
+    </figure>
 
-In `Other permissions policies` write in the search S3 and select de
-option `AmazonS3FullAccess` (For the purpose of this practice only, a
-restrictive usage policy should be created for security reasons.)
+    Create `Function Name` and select language `Runtime`
 
-<figure id="25a91892-6feb-809c-b8b3-f51261ce09b2" class="image">
-<a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.15.56_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.15.56_AM.png"
-style="width:2560px" /></a>
-</figure>
+    <figure id="25a91892-6feb-8044-bc12-e1e439ed6b64" class="image">
+    <a
+    href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_8.55.06_AM.png"><img
+    src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_8.55.06_AM.png"
+    style="width:2138px" /></a>
+    </figure>
 
-Click en `Add permissions`
+    Select `Architecture` and seleect `Create function`
 
-<figure id="25a91892-6feb-8035-8bf8-eed8926e6b17" class="image">
-<a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.19.30_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.19.30_AM.png"
-style="width:2560px" /></a>
-</figure>
+    <figure id="25a91892-6feb-80f2-8d21-ef61092795a5" class="image">
+    <a
+    href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.17.22_AM.png"><img
+    src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.17.22_AM.png"
+    style="width:2160px" /></a>
+    </figure>
 
-## To test the lambda function
+    <figure id="25a91892-6feb-80d0-9def-c32789179758" class="image">
+    <a
+    href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.16.00_AM.png"><img
+    src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.16.00_AM.png"
+    style="width:2560px" /></a>
+    </figure>
+
+<!-- -->
+
+2.  Choose a function name (e.g., `jsontoexcel`)
+
+<!-- -->
+
+3.  Select **Python 3.8** as the runtime
+
+<!-- -->
+
+4.  Select the architecture (x86_64 or arm64)
+
+<!-- -->
+
+5.  Click **Create Function**
+
+<!-- -->
+
+6.  Paste the Lambda code into `lambda_function.py`
+
+    <figure id="25a91892-6feb-8080-ba79-fe54633c6e19" class="image">
+    <a
+    href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.59.39_AM.png"><img
+    src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_9.59.39_AM.png"
+    style="width:2224px" /></a>
+    </figure>
+
+    ``` code
+    import json
+    import boto3
+    import pandas as pd
+    from io import BytesIO
+
+    s3 = boto3.client('s3')
+
+    def lambda_handler(event, context):
+        # Get data from event
+        table_data = event.get("table")
+        bucket = event.get("bucket")
+        key = event.get("key", "output.xlsx")
+
+        if not table_data or not bucket:
+            return {
+                "statusCode": 400,
+                "body": json.dumps("Missing parameters: 'table' or 'bucket'")
+            }
+
+        # Convert to DataFrame
+        df = pd.DataFrame(table_data)
+
+        # Save to Excel in memory
+        with BytesIO() as output:
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False)
+            output.seek(0)
+
+            # Upload to S3
+            s3.put_object(Bucket=bucket, Key=key, Body=output.getvalue())
+
+        return {
+            "statusCode": 200,
+            "body": json.dumps(f"File saved at s3://{bucket}/{key}")
+        }
+    ```
+
+    With the code paste `Deploy`
+
+    <figure id="25a91892-6feb-8059-afa3-d3d6b5b847c2" class="image">
+    <a
+    href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.02.01_AM.png"><img
+    src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.02.01_AM.png"
+    style="width:2074px" /></a>
+    </figure>
+
+------------------------------------------------------------------------
+
+## 🔒 Configure Permissions
+
+1.  Open the Lambda function
+
+<!-- -->
+
+2.  Go to **Configuration → Permissions**
+
+<!-- -->
+
+3.  Click the execution role name (e.g., `jsontoexcel-role-xxxxxx`)
+
+<!-- -->
+
+4.  Add the required S3 policy:
+
+    - For practice, you can attach **AmazonS3FullAccess**
+
+    <!-- -->
+
+    - ⚠️ For production, create a **restrictive custom policy** that
+      only allows writing to the specific bucket
+
+    👉 To add the permission in S3 bucket select `Configuration` and
+    `Permission` , in `Role name` click in `jsontoexcel-role-odqxkhah`
+
+    <figure id="25a91892-6feb-8090-86c9-cfebb2faad94" class="image">
+    <a
+    href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.06.08_AM.png"><img
+    src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.06.08_AM.png"
+    style="width:2218px" /></a>
+    </figure>
+
+    In the new link in `Permission` select `Add permissions` with de
+    option `Attach policies`
+
+    <figure id="25a91892-6feb-804e-9855-c5c314e899d0" class="image">
+    <a
+    href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.10.30_AM.png"><img
+    src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.10.30_AM.png"
+    style="width:2560px" /></a>
+    </figure>
+
+    In `Other permissions policies` write in the search S3 and select de
+    option `AmazonS3FullAccess` (For the purpose of this practice only,
+    a restrictive usage policy should be created for security reasons.)
+
+    <figure id="25a91892-6feb-8073-a458-e03ea2c30b3d" class="image">
+    <a
+    href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.15.56_AM.png"><img
+    src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.15.56_AM.png"
+    style="width:2560px" /></a>
+    </figure>
+
+    Click en `Add permissions`
+
+    <figure id="25a91892-6feb-80ff-bc44-e8859fafd8c1" class="image">
+    <a
+    href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.19.30_AM.png"><img
+    src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.19.30_AM.png"
+    style="width:2560px" /></a>
+    </figure>
+
+------------------------------------------------------------------------
+
+## 🧪 Testing the Lambda
+
+1.  Go to your Lambda function
+
+<!-- -->
+
+2.  Click **Test → Configure test event**
+
+<!-- -->
+
+3.  Use the JSON event payload shown earlier
+
+<!-- -->
+
+4.  Save and click **Test**
+
+<!-- -->
+
+5.  Check the **S3 bucket** for the generated `jsontoexcel.xlsx` file
+
+<!-- -->
+
+6.  Download it to verify the contents
 
 Go to lambda select the function **`jsontoexcel`, click in** **`test`**
 **and** **`Test event action`** **create** **`Event name`**
 
-<figure id="25a91892-6feb-8059-896a-d22cbf9f3771" class="image">
+<figure id="25a91892-6feb-8060-a881-c35ed7b768bb" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.25.45_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.25.45_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.25.45_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.25.45_AM.png"
 style="width:2560px" /></a>
 </figure>
 
@@ -450,55 +540,78 @@ In `Event JSON` paste the code
 }
 ```
 
-<figure id="25a91892-6feb-8024-9fff-f3847a1250bd" class="image">
+<figure id="25a91892-6feb-8084-b55f-ddc61ddaf7aa" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.29.04_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.29.04_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.29.04_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.29.04_AM.png"
 style="width:2222px" /></a>
 </figure>
 
 And select `Save`
 
-<figure id="25a91892-6feb-80b8-914c-c274e9033553" class="image">
+<figure id="25a91892-6feb-808e-91c4-dac9514d952d" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.30.49_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.30.49_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.30.49_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.30.49_AM.png"
 style="width:2224px" /></a>
 </figure>
 
 Make a test with click in Test
 
-<figure id="25a91892-6feb-8063-a724-e02c4027a992" class="image">
+<figure id="25a91892-6feb-8047-9cef-d4308dfe2ec3" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.33.04_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.33.04_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.33.04_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.33.04_AM.png"
 style="width:2264px" /></a>
 </figure>
 
 To verify go to `S3` and select the bucket `lambdajsontoexcel`
 
-<figure id="25a91892-6feb-8031-b651-d71316345b0c" class="image">
+<figure id="25a91892-6feb-809e-99ba-dee0a12147b2" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.35.12_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.35.12_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.35.12_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.35.12_AM.png"
 style="width:709.9739990234375px" /></a>
 </figure>
 
 To donwload slect the file `jsontoexcel.xlsx` and click in `Donwload`
 
-<figure id="25a91892-6feb-80d3-a2cd-fa9aef3d603a" class="image">
+<figure id="25a91892-6feb-80fd-993f-d0fbf340288b" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.36.45_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.36.45_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.36.45_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.36.45_AM.png"
 style="width:2560px" /></a>
 </figure>
 
-<figure id="25a91892-6feb-80e3-ada8-dffdb520b57d" class="image">
+<figure id="25a91892-6feb-800e-9048-d0263376eb35" class="image">
 <a
-href="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.38.16_AM.png"><img
-src="jsontoexcel%20wit%20aws%20lambda%2025a918926feb808ab56ef7e71904cdff/Screenshot_2025-08-25_at_10.38.16_AM.png"
+href="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.38.16_AM.png"><img
+src="ConvertingJSONtoExcel%2025a918926feb80aca0d8ff7e5175d3a0/Screenshot_2025-08-25_at_10.38.16_AM.png"
 style="width:325.9895935058594px" /></a>
 </figure>
+
+------------------------------------------------------------------------
+
+## 🎯 Benefits of Using Layers
+
+- **Reusable**: One layer can be shared across multiple Lambda functions
+
+<!-- -->
+
+- **Lightweight**: Keeps your Lambda deployment package smaller
+
+<!-- -->
+
+- **Efficient**: No need to re-upload dependencies every time you change
+  code
+
+------------------------------------------------------------------------
+
+✅ With this setup, you now have a fully working **serverless
+function** that takes JSON input, converts it into Excel, and saves it
+to S3 — all automated with AWS Lambda.
+
+------------------------------------------------------------------------
 
 </div>
 
